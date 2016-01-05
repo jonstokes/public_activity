@@ -14,8 +14,21 @@ module PublicActivity
         # Define ownership to a resource targeted by this activity
         belongs_to :recipient, :polymorphic => true
 
+        before_save :set_visibility
+
         if ::ActiveRecord::VERSION::MAJOR < 4 || defined?(ProtectedAttributes)
           attr_accessible :key, :owner, :parameters, :recipient, :trackable
+        end
+
+        private
+
+        def set_visibility
+          if recipient && recipient.respond_to?(:visibility)
+            self.visibility = recipient.visibility
+          elsif trackable.respond_to?(:visibility)
+            self.visibility = trackable.visibility
+          end
+          true
         end
       end
     end
