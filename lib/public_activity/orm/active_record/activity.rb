@@ -14,13 +14,19 @@ module PublicActivity
         # Define ownership to a resource targeted by this activity
         belongs_to :recipient, :polymorphic => true
 
-        before_save :set_visibility
+        enum visibility: [:everyone, :followers, :with_link, :me]
+        enum action: [:action_create, :action_update, :action_delete]
+        before_save :set_visibility, :set_action
 
         if ::ActiveRecord::VERSION::MAJOR < 4 || defined?(ProtectedAttributes)
           attr_accessible :key, :owner, :parameters, :recipient, :trackable
         end
 
         private
+
+        def set_action
+          self.action = "action_#{key.split(".").last}"
+        end
 
         def set_visibility
           if recipient && recipient.respond_to?(:visibility)
